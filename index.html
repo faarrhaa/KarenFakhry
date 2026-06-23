@@ -662,8 +662,8 @@ body{
   </section>
 
   <!-- ═══ DATE - 3 ANTIQUE SCROLLS ═══ -->
-  <section class="reveal-section" style="text-align:center;padding:40px 0;">
-    <p class="reveal-child reveal-delay-1 tagline" style="color:var(--gold);margin-bottom:24px;">Break the seal to reveal the date</p>
+  <section id="date-scrolls-section" class="reveal-section" style="text-align:center;padding:40px 0;">
+    <p class="reveal-child reveal-delay-1 tagline" style="color:var(--gold);margin-bottom:24px;">Our Engagement Date</p>
     
     <div class="reveal-child reveal-delay-2" style="display:flex; justify-content:center; gap:clamp(10px, 3vw, 40px); flex-wrap:nowrap; margin:20px 0; align-items: flex-start;">
       
@@ -761,72 +761,6 @@ body{
 
   <div class="gold-divider"></div>
 
-  <!-- ═══ EVENING PROGRAM ═══ -->
-  <section class="program-section reveal-section">
-    <p class="reveal-child reveal-delay-1 tagline" style="color:var(--gold);margin-bottom:10px;">The Order of the Evening</p>
-    <h2 class="reveal-child reveal-delay-2" style="font-family:'Cinzel',serif;font-size:clamp(20px,4vw,32px);color:var(--dark);margin-bottom:6px;">As the Night Unfolds</h2>
-    <p class="reveal-child reveal-delay-3" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(14px,2.5vw,17px);color:var(--brown);">23 August 2026 &nbsp;·&nbsp; St Mary Coptic Orthodox Church, Moharam Bek</p>
-
-    <div class="reveal-child reveal-delay-4 program-manuscript">
-      <svg style="position:absolute;top:8px;right:8px;opacity:.4" width="28" height="28" viewBox="0 0 28 28"><path d="M28 0 L28 28 L0 28" fill="none" stroke="#b8860b" stroke-width="1"/><circle cx="28" cy="28" r="3" fill="#b8860b" opacity=".6"/></svg>
-      <svg style="position:absolute;bottom:8px;left:8px;opacity:.4" width="28" height="28" viewBox="0 0 28 28"><path d="M0 28 L0 0 L28 0" fill="none" stroke="#b8860b" stroke-width="1"/><circle cx="0" cy="0" r="3" fill="#b8860b" opacity=".6"/></svg>
-
-      <div class="prog-entry">
-        <div class="prog-time-col"><span class="prog-hour">5:00</span><span class="prog-period">PM</span></div>
-        <div class="prog-thread-col"><div class="prog-jewel"></div><div class="prog-thread"></div></div>
-        <div class="prog-content-col">
-          <div class="prog-title">Doors Open · Arrival</div>
-          <div class="prog-desc">Guests are welcomed into the Grand Ballroom. Soft oud fills the air as champagne is passed and candles are lit.</div>
-        </div>
-      </div>
-      <div class="prog-entry">
-        <div class="prog-time-col"><span class="prog-hour">5:30</span><span class="prog-period">PM</span></div>
-        <div class="prog-thread-col"><div class="prog-jewel"></div><div class="prog-thread"></div></div>
-        <div class="prog-content-col">
-          <div class="prog-title">The Ceremony</div>
-          <div class="prog-desc">Karen and Fakhry exchange their vows and are joined in marriage before those they hold most dear.</div>
-        </div>
-      </div>
-      <div class="prog-candle-row">
-        <div class="prog-candle-line"></div>
-        <div class="prog-candle"></div>
-        <div class="prog-candle" style="height:36px;margin-bottom:-4px;"></div>
-        <div class="prog-candle"></div>
-        <div class="prog-candle-line"></div>
-      </div>
-      <div class="prog-entry">
-        <div class="prog-time-col"><span class="prog-hour">6:15</span><span class="prog-period">PM</span></div>
-        <div class="prog-thread-col"><div class="prog-jewel"></div><div class="prog-thread"></div></div>
-        <div class="prog-content-col">
-          <div class="prog-title">Toast &amp; First Pour</div>
-          <div class="prog-desc">Glasses raised. Words spoken from the heart. The first toast to a lifetime of shared mornings.</div>
-        </div>
-      </div>
-      <div class="prog-entry">
-        <div class="prog-time-col"><span class="prog-hour">7:00</span><span class="prog-period">PM</span></div>
-        <div class="prog-thread-col"><div class="prog-jewel"></div><div class="prog-thread"></div></div>
-        <div class="prog-content-col">
-          <div class="prog-title">Dinner is Served</div>
-          <div class="prog-desc">A lavish feast laid before you. Linger long over every course, for tonight there is nowhere else to be.</div>
-        </div>
-      </div>
-      <div class="prog-entry">
-        <div class="prog-time-col"><span class="prog-hour">8:30</span><span class="prog-period">PM</span></div>
-        <div class="prog-thread-col"><div class="prog-jewel"></div><div class="prog-thread"></div></div>
-        <div class="prog-content-col">
-          <div class="prog-title">First Dance &amp; the Floor Opens</div>
-          <div class="prog-desc">The couple takes the floor. Then so does everyone else. Dance until the chandeliers blur.</div>
-        </div>
-      </div>
-      <div class="prog-entry">
-        <div class="prog-time-col"><span class="prog-hour">9:30</span><span class="prog-period">PM</span></div>
-        <div class="prog-thread-col"><div class="prog-jewel"></div><div class="prog-thread" style="background:transparent;"></div></div>
-        <div class="prog-content-col">
-          <div class="prog-title">Cutting of the Cake</div>
-          <div class="prog-desc">The evening draws to its sweet close. A final memory made together, and a night none shall forget.</div>
-        </div>
-      </div>
-    </div>
   </section>
 
   <div class="gold-divider"></div>
@@ -1308,6 +1242,13 @@ function initScrollReveal(){
         e.target.classList.add('revealed');
         if(e.target.id==='cinematic-ending')triggerCinematicEndingParticles();
         if(e.target.querySelector('.venue-hero'))initVenuePetals();
+        if(e.target.id==='date-scrolls-section'){
+          e.target.querySelectorAll('.scroll-card').forEach((card, idx)=>{
+            setTimeout(()=>{
+              card.classList.add('opened');
+            }, 400 + idx * 300);
+          });
+        }
         o.unobserve(e.target);
       }
     });
