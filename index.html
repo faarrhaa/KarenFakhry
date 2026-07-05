@@ -933,6 +933,25 @@ body{
 
   <div class="gold-divider"></div>
 
+  <!-- ═══ OUTING ═══ -->
+  <section class="reveal-section" style="padding:56px 0;">
+    <div class="reveal-child reveal-delay-1 venue-hero">
+      <div class="venue-hero-bg" style="background:url('outing.png') center center / cover no-repeat;"></div>
+      <div class="venue-hero-overlay"></div>
+      <div class="venue-hero-petals" id="outing-petals"></div>
+      <div class="venue-hero-content">
+        <div class="venue-hero-tagline">Our Outing</div>
+        <div class="venue-hero-divider"></div>
+        <div class="venue-hero-name">Greek Community Club Soter</div>
+        <div class="venue-hero-sub"></div>
+        <div class="venue-hero-divider" style="margin-top:16px;"></div>
+        <a class="get-directions-btn" href="https://maps.app.goo.gl/8UtkCdoGmGMR48Pu5" target="_blank" rel="noopener">🗺 &nbsp;Get Directions</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="gold-divider"></div>
+
   <section class="reveal-section" style="text-align:center;padding:56px 24px;">
     <p class="reveal-child reveal-delay-1 tagline" style="color:var(--gold);margin-bottom:10px;">A Message for You</p>
     <h2 class="reveal-child reveal-delay-2" style="font-family:'Cinzel',serif;font-size:clamp(20px,4vw,32px);color:var(--dark);margin-bottom:12px;">Love Letter</h2>
@@ -1201,8 +1220,8 @@ function rsvpYes(){
 }
 
 /* ═══ VENUE PETALS ═══ */
-function initVenuePetals(){
-  const container=document.getElementById('venue-petals');if(!container)return;
+function initVenuePetals(containerId){
+  const container=document.getElementById(containerId||'venue-petals');if(!container||container.childElementCount)return;
   const colors=['#f9d5e5','#fce4ec','#fff0f5','#f8bbd0'];
   function spawnPetal(){
     const p=document.createElement('div');const size=Math.random()*8+6;const left=Math.random()*100;const dur=Math.random()*6+7;const delay=Math.random()*4;
@@ -1241,7 +1260,8 @@ function initScrollReveal(){
       if(e.isIntersecting){
         e.target.classList.add('revealed');
         if(e.target.id==='cinematic-ending')triggerCinematicEndingParticles();
-        if(e.target.querySelector('.venue-hero'))initVenuePetals();
+        if(e.target.querySelector('#venue-petals'))initVenuePetals('venue-petals');
+        if(e.target.querySelector('#outing-petals'))initVenuePetals('outing-petals');
         if(e.target.id==='date-scrolls-section'){
           e.target.querySelectorAll('.scroll-card').forEach((card, idx)=>{
             setTimeout(()=>{
