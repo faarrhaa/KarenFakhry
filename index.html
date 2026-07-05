@@ -1125,7 +1125,7 @@ function openEnvelope(){
   setTimeout(()=>{
     document.getElementById('envelope-screen').style.display='none';
     document.getElementById('invitation').style.display='block';
-    startCountdown();renderWishes();initScrollReveal();initCinematicEnding();
+    startCountdown();initScrollReveal();initCinematicEnding();
   },700);
 }
 
@@ -1186,32 +1186,8 @@ function toggleWardrobe(){
   }
 }
 
-/* ═══ WISHES ═══ */
-let wishes=[];try{wishes=JSON.parse(localStorage.getItem('wishes_ts_2026')||'[]');}catch(e){}
-function escapeHTML(str){const d=document.createElement('div');d.textContent=str;return d.innerHTML;}
+/* ═══ WISHES ═══ (now handled by Firestore module script below) ═══ */
 
-function renderWishes(){
-  const board=document.getElementById('wishes-board');if(!board)return;board.innerHTML='';
-  const defaultWish={name:"Karen & Fakhry",text:"We are so excited to celebrate our love with all of you! Leave your warm wishes right here. 💕"};
-  const dCard=document.createElement('div');dCard.className='wish-card';dCard.style.setProperty('--rot','0deg');
-  dCard.innerHTML=`<div class="wish-name">${escapeHTML(defaultWish.name)}</div><div class="wish-text">"${escapeHTML(defaultWish.text)}"</div>`;
-  board.appendChild(dCard);
-  wishes.forEach((w,i)=>{
-    const card=document.createElement('div');card.className='wish-card';card.style.setProperty('--rot',`${((i*7)%9)-4}deg`);
-    card.innerHTML=`<div class="wish-name">${escapeHTML(w.name)}</div><div class="wish-text">"${escapeHTML(w.text)}"</div>`;
-    board.appendChild(card);
-  });
-}
-
-function postWish(){
-  const n=document.getElementById('wish-name-input').value.trim();const t=document.getElementById('wish-text-input').value.trim();
-  const err=document.getElementById('wish-error');
-  if(!n||!t){err.textContent='Please enter your name and a message ✦';return;}
-  err.textContent='';wishes.unshift({name:n,text:t});
-  try{localStorage.setItem('wishes_ts_2026',JSON.stringify(wishes));}catch(e){}
-  document.getElementById('wish-name-input').value='';document.getElementById('wish-text-input').value='';
-  renderWishes();spawnConfetti();
-}
 
 /* ═══ RSVP ═══ */
 function rsvpYes(){
@@ -1284,6 +1260,98 @@ function initScrollReveal(){
   document.querySelectorAll('.reveal-section').forEach(s=>obs.observe(s));
   const ending=document.getElementById('cinematic-ending');if(ending)pauseObs.observe(ending);
 }
+</script>
+
+<!-- ═══ FIREBASE · LIVE WISHES WALL ═══ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, onSnapshot,
+    query, orderBy, limit, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvFeJpv56hpUE3fq1aD6oxIt9yvQAjHoc",
+    authDomain: "karenfakhry-wishes.firebaseapp.com",
+    projectId: "karenfakhry-wishes",
+    storageBucket: "karenfakhry-wishes.firebasestorage.app",
+    messagingSenderId: "137167698963",
+    appId: "1:137167698963:web:82e54abfcde5a1edde53e6",
+    measurementId: "G-0JLMWRRYN6"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const wishesCol = collection(db, "wishes");
+
+  function escapeHTML(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function renderWishesBoard(list){
+    const board = document.getElementById('wishes-board');
+    if(!board) return;
+    board.innerHTML = '';
+
+    const defaultWish = {
+      name: "Karen & Fakhry",
+      text: "We are so excited to celebrate our love with all of you! Leave your warm wishes right here. 💕"
+    };
+    const dCard = document.createElement('div');
+    dCard.className = 'wish-card';
+    dCard.style.setProperty('--rot', '0deg');
+    dCard.innerHTML = `<div class="wish-name">${escapeHTML(defaultWish.name)}</div><div class="wish-text">"${escapeHTML(defaultWish.text)}"</div>`;
+    board.appendChild(dCard);
+
+    list.forEach((w, i) => {
+      const card = document.createElement('div');
+      card.className = 'wish-card';
+      card.style.setProperty('--rot', `${((i * 7) % 9) - 4}deg`);
+      card.innerHTML = `<div class="wish-name">${escapeHTML(w.name)}</div><div class="wish-text">"${escapeHTML(w.text)}"</div>`;
+      board.appendChild(card);
+    });
+  }
+
+  // Live sync: every visitor's wall updates instantly when anyone posts a wish
+  const wishesQuery = query(wishesCol, orderBy('createdAt', 'desc'), limit(200));
+  onSnapshot(wishesQuery, (snapshot) => {
+    const list = snapshot.docs.map(doc => doc.data());
+    renderWishesBoard(list);
+  }, (err) => {
+    console.error('Wishes listener error:', err);
+    renderWishesBoard([]);
+  });
+
+  // Exposed globally so the existing onclick="postWish()" button keeps working
+  window.postWish = async function(){
+    const nameInput = document.getElementById('wish-name-input');
+    const textInput = document.getElementById('wish-text-input');
+    const err = document.getElementById('wish-error');
+    const n = nameInput.value.trim();
+    const t = textInput.value.trim();
+
+    if(!n || !t){
+      err.textContent = 'Please enter your name and a message ✦';
+      return;
+    }
+    if(n.length > 60 || t.length > 500){
+      err.textContent = 'Please shorten your name/message a little ✦';
+      return;
+    }
+    err.textContent = '';
+
+    try{
+      await addDoc(wishesCol, { name: n, text: t, createdAt: serverTimestamp() });
+      nameInput.value = '';
+      textInput.value = '';
+      if(typeof spawnConfetti === 'function') spawnConfetti();
+    }catch(e){
+      console.error(e);
+      err.textContent = 'Something went wrong — please try again ✦';
+    }
+  };
 </script>
 </body>
 </html>
