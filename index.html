@@ -761,10 +761,6 @@ body{
 
   <div class="gold-divider"></div>
 
-  </section>
-
-  <div class="gold-divider"></div>
-
   <!-- ═══ DRESS CODE · WARDROBE ═══ -->
   <section class="dress-code-section reveal-section">
     <p class="reveal-child reveal-delay-1 tagline" style="color:var(--gold);margin-bottom:10px;">A Note on Attire</p>
@@ -1230,25 +1226,51 @@ function initCinematicEnding(){
   }
 }
 
+function revealSection(target){
+  if(target.classList.contains('revealed'))return;
+  target.classList.add('revealed');
+  if(target.id==='cinematic-ending')triggerCinematicEndingParticles();
+  if(target.querySelector('#venue-petals'))initVenuePetals('venue-petals');
+  if(target.querySelector('#outing-petals'))initVenuePetals('outing-petals');
+  if(target.id==='date-scrolls-section'){
+    target.querySelectorAll('.scroll-card').forEach((card, idx)=>{
+      setTimeout(()=>{card.classList.add('opened');}, 400 + idx * 300);
+    });
+  }
+}
+
 function initScrollReveal(){
   const obs=new IntersectionObserver((entries,o)=>{
     entries.forEach(e=>{
       if(e.isIntersecting){
-        e.target.classList.add('revealed');
-        if(e.target.id==='cinematic-ending')triggerCinematicEndingParticles();
-        if(e.target.querySelector('#venue-petals'))initVenuePetals('venue-petals');
-        if(e.target.querySelector('#outing-petals'))initVenuePetals('outing-petals');
-        if(e.target.id==='date-scrolls-section'){
-          e.target.querySelectorAll('.scroll-card').forEach((card, idx)=>{
-            setTimeout(()=>{
-              card.classList.add('opened');
-            }, 400 + idx * 300);
-          });
-        }
+        revealSection(e.target);
         o.unobserve(e.target);
       }
     });
   },{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+
+  /* Fallback for mobile browsers where IntersectionObserver can misbehave
+     (e.g. dynamic address-bar resizing on iOS/Android Safari & Chrome).
+     This manually checks each section's position on scroll/resize and
+     reveals it if it's on screen, guaranteeing content always shows up. */
+  let fallbackTicking=false;
+  function fallbackReveal(){
+    fallbackTicking=false;
+    const vh=window.innerHeight||document.documentElement.clientHeight;
+    document.querySelectorAll('.reveal-section:not(.revealed)').forEach(sec=>{
+      const r=sec.getBoundingClientRect();
+      if(r.top<vh*0.95 && r.bottom>0)revealSection(sec);
+    });
+  }
+  function onScrollOrResize(){
+    if(!fallbackTicking){fallbackTicking=true;requestAnimationFrame(fallbackReveal);}
+  }
+  window.addEventListener('scroll',onScrollOrResize,{passive:true});
+  window.addEventListener('resize',onScrollOrResize);
+  fallbackReveal();
+  /* Hard safety net: if anything is still hidden a few seconds after load
+     (JS quirk, slow layout, etc.) reveal everything so nothing stays blank. */
+  setTimeout(()=>{document.querySelectorAll('.reveal-section:not(.revealed)').forEach(revealSection);},4000);
 
   const pauseObs=new IntersectionObserver((entries)=>{
     entries.forEach(e=>{
@@ -1262,22 +1284,21 @@ function initScrollReveal(){
 }
 </script>
 
-<!-- ═══ FIREBASE · LIVE WISHES WALL ═══ -->
+<!-- ═══ FIREBASE · PRIVATE WISHES (guests submit; nothing renders publicly) ═══ -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
   import {
     getFirestore, collection, addDoc, onSnapshot,
     query, orderBy, limit, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyAvFeJpv56hpUE3fq1aD6oxIt9yvQAjHoc",
-    authDomain: "karenfakhry-wishes.firebaseapp.com",
-    projectId: "karenfakhry-wishes",
-    storageBucket: "karenfakhry-wishes.firebasestorage.app",
-    messagingSenderId: "137167698963",
-    appId: "1:137167698963:web:82e54abfcde5a1edde53e6",
-    measurementId: "G-0JLMWRRYN6"
+    apiKey: "AIzaSyAWxKfubMJb2OB3NbOoARotF4S2ZtotM6s",
+    authDomain: "karenfakhry-f5ad5.firebaseapp.com",
+    projectId: "karenfakhry-f5ad5",
+    storageBucket: "karenfakhry-f5ad5.firebasestorage.app",
+    messagingSenderId: "837586755204",
+    appId: "1:837586755204:web:caf962e6cbf9b485212cd1"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -1314,15 +1335,10 @@ function initScrollReveal(){
     });
   }
 
-  // Live sync: every visitor's wall updates instantly when anyone posts a wish
-  const wishesQuery = query(wishesCol, orderBy('createdAt', 'desc'), limit(200));
-  onSnapshot(wishesQuery, (snapshot) => {
-    const list = snapshot.docs.map(doc => doc.data());
-    renderWishesBoard(list);
-  }, (err) => {
-    console.error('Wishes listener error:', err);
-    renderWishesBoard([]);
-  });
+  // Wishes are stored privately in Firestore — the public invitation only ever
+  // shows the default "Karen & Fakhry" card, never anyone's submitted wishes.
+  // (No onSnapshot/read here on purpose — guests can only write, not read.)
+  renderWishesBoard([]);
 
   // Exposed globally so the existing onclick="postWish()" button keeps working
   window.postWish = async function(){
