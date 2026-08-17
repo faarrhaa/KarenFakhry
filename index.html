@@ -933,6 +933,25 @@ body{
 
   <div class="gold-divider"></div>
 
+  <!-- ═══ OUTING ═══ -->
+  <section class="reveal-section" style="padding:56px 0;">
+    <div class="reveal-child reveal-delay-1 venue-hero">
+      <div class="venue-hero-bg" style="background:url('outing.png') center center / cover no-repeat;"></div>
+      <div class="venue-hero-overlay"></div>
+      <div class="venue-hero-petals" id="outing-petals"></div>
+      <div class="venue-hero-content">
+        <div class="venue-hero-tagline">Our Outing</div>
+        <div class="venue-hero-divider"></div>
+        <div class="venue-hero-name">Greek Community Club Soter</div>
+        <div class="venue-hero-sub"></div>
+        <div class="venue-hero-divider" style="margin-top:16px;"></div>
+        <a class="get-directions-btn" href="https://maps.app.goo.gl/8UtkCdoGmGMR48Pu5" target="_blank" rel="noopener">🗺 &nbsp;Get Directions</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="gold-divider"></div>
+
   <section class="reveal-section" style="text-align:center;padding:56px 24px;">
     <p class="reveal-child reveal-delay-1 tagline" style="color:var(--gold);margin-bottom:10px;">A Message for You</p>
     <h2 class="reveal-child reveal-delay-2" style="font-family:'Cinzel',serif;font-size:clamp(20px,4vw,32px);color:var(--dark);margin-bottom:12px;">Love Letter</h2>
@@ -1106,7 +1125,7 @@ function openEnvelope(){
   setTimeout(()=>{
     document.getElementById('envelope-screen').style.display='none';
     document.getElementById('invitation').style.display='block';
-    startCountdown();renderWishes();initScrollReveal();initCinematicEnding();
+    startCountdown();initScrollReveal();initCinematicEnding();
   },700);
 }
 
@@ -1167,25 +1186,8 @@ function toggleWardrobe(){
   }
 }
 
-/* ═══ WISHES ═══ */
-/* wishes[] is populated live from Firestore by the Firebase module script below. */
-let wishes=[];
-function escapeHTML(str){const d=document.createElement('div');d.textContent=str;return d.innerHTML;}
+/* ═══ WISHES ═══ (now handled by Firestore module script below) ═══ */
 
-function renderWishes(){
-  const board=document.getElementById('wishes-board');if(!board)return;board.innerHTML='';
-  const list = window.__dbWishes || wishes;
-  const defaultWish={name:"Karen & Fakhry",text:"We are so excited to celebrate our love with all of you! Leave your warm wishes right here. 💕"};
-  const dCard=document.createElement('div');dCard.className='wish-card';dCard.style.setProperty('--rot','0deg');
-  dCard.innerHTML=`<div class="wish-name">${escapeHTML(defaultWish.name)}</div><div class="wish-text">"${escapeHTML(defaultWish.text)}"</div>`;
-  board.appendChild(dCard);
-  list.forEach((w,i)=>{
-    const card=document.createElement('div');card.className='wish-card';card.style.setProperty('--rot',`${((i*7)%9)-4}deg`);
-    card.innerHTML=`<div class="wish-name">${escapeHTML(w.name)}</div><div class="wish-text">"${escapeHTML(w.text)}"</div>`;
-    board.appendChild(card);
-  });
-}
-window.renderWishes = renderWishes;
 
 /* ═══ RSVP ═══ */
 function rsvpYes(){
@@ -1194,8 +1196,8 @@ function rsvpYes(){
 }
 
 /* ═══ VENUE PETALS ═══ */
-function initVenuePetals(){
-  const container=document.getElementById('venue-petals');if(!container)return;
+function initVenuePetals(containerId){
+  const container=document.getElementById(containerId||'venue-petals');if(!container||container.childElementCount)return;
   const colors=['#f9d5e5','#fce4ec','#fff0f5','#f8bbd0'];
   function spawnPetal(){
     const p=document.createElement('div');const size=Math.random()*8+6;const left=Math.random()*100;const dur=Math.random()*6+7;const delay=Math.random()*4;
@@ -1234,7 +1236,8 @@ function initScrollReveal(){
       if(e.isIntersecting){
         e.target.classList.add('revealed');
         if(e.target.id==='cinematic-ending')triggerCinematicEndingParticles();
-        if(e.target.querySelector('.venue-hero'))initVenuePetals();
+        if(e.target.querySelector('#venue-petals'))initVenuePetals('venue-petals');
+        if(e.target.querySelector('#outing-petals'))initVenuePetals('outing-petals');
         if(e.target.id==='date-scrolls-section'){
           e.target.querySelectorAll('.scroll-card').forEach((card, idx)=>{
             setTimeout(()=>{
@@ -1259,52 +1262,96 @@ function initScrollReveal(){
 }
 </script>
 
-<!-- ═══ FIREBASE (Firestore) — Wishes Wall ═══ -->
+<!-- ═══ FIREBASE · LIVE WISHES WALL ═══ -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, onSnapshot,
+    query, orderBy, limit, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAWxKfubMJb2OB3NbOoARotF4S2ZtotM6s",
-  authDomain: "karenfakhry-f5ad5.firebaseapp.com",
-  projectId: "karenfakhry-f5ad5",
-  storageBucket: "karenfakhry-f5ad5.firebasestorage.app",
-  messagingSenderId: "837586755204",
-  appId: "1:837586755204:web:caf962e6cbf9b485212cd1"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvFeJpv56hpUE3fq1aD6oxIt9yvQAjHoc",
+    authDomain: "karenfakhry-wishes.firebaseapp.com",
+    projectId: "karenfakhry-wishes",
+    storageBucket: "karenfakhry-wishes.firebasestorage.app",
+    messagingSenderId: "137167698963",
+    appId: "1:137167698963:web:82e54abfcde5a1edde53e6",
+    measurementId: "G-0JLMWRRYN6"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const wishesCol = collection(db, "wishes");
 
-/* ── WISHES WALL: live sync ── */
-const wishesCol = collection(db, "wishes");
-const wishesQuery = query(wishesCol, orderBy("createdAt", "desc"));
-
-/* Wishes are stored privately in Firestore but intentionally NOT rendered on the
-   public wall — no onSnapshot listener here, so submitted wishes never populate
-   window.__dbWishes or the wishes-board. They still show up on the live
-   monitoring page (wishes.html), which listens directly. */
-
-window.postWish = async function(){
-  const nameInput=document.getElementById('wish-name-input');
-  const textInput=document.getElementById('wish-text-input');
-  const err=document.getElementById('wish-error');
-  const n=nameInput.value.trim();
-  const t=textInput.value.trim();
-  if(!n||!t){ err.textContent='Please enter your name and a message ✦'; return; }
-  err.textContent='Posting…';
-  try{
-    await addDoc(wishesCol, { name:n, text:t, createdAt:serverTimestamp() });
-    nameInput.value=''; textInput.value='';
-    err.textContent='';
-    if(typeof window.spawnConfetti==='function') window.spawnConfetti();
-  }catch(e){
-    console.error('postWish failed', e);
-    err.textContent='Something went wrong — please try again ✦';
+  function escapeHTML(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
   }
-};
+
+  function renderWishesBoard(list){
+    const board = document.getElementById('wishes-board');
+    if(!board) return;
+    board.innerHTML = '';
+
+    const defaultWish = {
+      name: "Karen & Fakhry",
+      text: "We are so excited to celebrate our love with all of you! Leave your warm wishes right here. 💕"
+    };
+    const dCard = document.createElement('div');
+    dCard.className = 'wish-card';
+    dCard.style.setProperty('--rot', '0deg');
+    dCard.innerHTML = `<div class="wish-name">${escapeHTML(defaultWish.name)}</div><div class="wish-text">"${escapeHTML(defaultWish.text)}"</div>`;
+    board.appendChild(dCard);
+
+    list.forEach((w, i) => {
+      const card = document.createElement('div');
+      card.className = 'wish-card';
+      card.style.setProperty('--rot', `${((i * 7) % 9) - 4}deg`);
+      card.innerHTML = `<div class="wish-name">${escapeHTML(w.name)}</div><div class="wish-text">"${escapeHTML(w.text)}"</div>`;
+      board.appendChild(card);
+    });
+  }
+
+  // Live sync: every visitor's wall updates instantly when anyone posts a wish
+  const wishesQuery = query(wishesCol, orderBy('createdAt', 'desc'), limit(200));
+  onSnapshot(wishesQuery, (snapshot) => {
+    const list = snapshot.docs.map(doc => doc.data());
+    renderWishesBoard(list);
+  }, (err) => {
+    console.error('Wishes listener error:', err);
+    renderWishesBoard([]);
+  });
+
+  // Exposed globally so the existing onclick="postWish()" button keeps working
+  window.postWish = async function(){
+    const nameInput = document.getElementById('wish-name-input');
+    const textInput = document.getElementById('wish-text-input');
+    const err = document.getElementById('wish-error');
+    const n = nameInput.value.trim();
+    const t = textInput.value.trim();
+
+    if(!n || !t){
+      err.textContent = 'Please enter your name and a message ✦';
+      return;
+    }
+    if(n.length > 60 || t.length > 500){
+      err.textContent = 'Please shorten your name/message a little ✦';
+      return;
+    }
+    err.textContent = '';
+
+    try{
+      await addDoc(wishesCol, { name: n, text: t, createdAt: serverTimestamp() });
+      nameInput.value = '';
+      textInput.value = '';
+      if(typeof spawnConfetti === 'function') spawnConfetti();
+    }catch(e){
+      console.error(e);
+      err.textContent = 'Something went wrong — please try again ✦';
+    }
+  };
 </script>
 </body>
 </html>
